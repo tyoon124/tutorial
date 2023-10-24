@@ -1,0 +1,32 @@
+variable T equal 100.0
+variable P equal press
+variable Td equal 100.0
+variable dt equal 0.001
+variable Pd equal 1000.0
+variable N equal 512
+
+units metal
+boundary p p p
+atom_style atomic
+
+region box block 0 40.0 0 40.0 0 40.0 units box
+create_box 1 box
+create_atoms 1 random $N 233479 box
+
+neighbor 0.3 bin
+neigh_modify delay 0 every 1 check yes
+mass 1 39.948
+velocity all create $T 629682 mom yes rot yes dist gaussian
+pair_style lj/cut 14.0
+pair_coeff 1 1 0.010323502570119953 3.405
+pair_modify tail yes
+
+minimize 1.0e-6 1.0e-8 1000 10000
+fix 1 all nvt temp $T $T ${Td}
+thermo_style	custom step temp density press
+thermo 1000
+dump	myDump all custom 2000 dump.lammpstrj id x y z
+run	100000
+
+fix pressone all ave/one time 1 1000 1000 v_P ave one file pressone.out
+fix pressrun all ave/one time 1 1000 1000 v_P ave running file pressrun.out
